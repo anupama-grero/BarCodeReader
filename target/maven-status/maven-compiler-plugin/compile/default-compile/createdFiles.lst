@@ -1,0 +1,9 @@
+com\bci\productcrud\exception\ProductNotFoundException.class
+com\bci\productcrud\model\Product.class
+com\bci\productcrud\service\ProductServiceImpl.class
+com\bci\productcrud\controller\ProductController.class
+com\bci\productcrud\exception\GlobalExceptionHandler.class
+com\bci\productcrud\ProductCrudApplication.class
+com\bci\productcrud\exception\DuplicateBarcodeException.class
+com\bci\productcrud\repository\ProductRepository.class
+com\bci\productcrud\service\ProductService.class
