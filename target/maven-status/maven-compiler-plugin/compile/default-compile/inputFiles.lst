@@ -1,9 +1,0 @@
-C:\Dev\BCI\Spring-MVC\src\main\java\com\bci\productcrud\controller\ProductController.java
-C:\Dev\BCI\Spring-MVC\src\main\java\com\bci\productcrud\exception\DuplicateBarcodeException.java
-C:\Dev\BCI\Spring-MVC\src\main\java\com\bci\productcrud\exception\GlobalExceptionHandler.java
-C:\Dev\BCI\Spring-MVC\src\main\java\com\bci\productcrud\exception\ProductNotFoundException.java
-C:\Dev\BCI\Spring-MVC\src\main\java\com\bci\productcrud\model\Product.java
-C:\Dev\BCI\Spring-MVC\src\main\java\com\bci\productcrud\ProductCrudApplication.java
-C:\Dev\BCI\Spring-MVC\src\main\java\com\bci\productcrud\repository\ProductRepository.java
-C:\Dev\BCI\Spring-MVC\src\main\java\com\bci\productcrud\service\ProductService.java
-C:\Dev\BCI\Spring-MVC\src\main\java\com\bci\productcrud\service\ProductServiceImpl.java
