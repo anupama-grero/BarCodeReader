@@ -72,7 +72,16 @@ $env:SUPABASE_DB_USERNAME="postgres.<project-ref>"
 $env:SUPABASE_DB_PASSWORD="<your-db-password>"
 ```
 
-Replace `<region>`, `<project-ref>`, and `<your-db-password>` with the values from your Supabase **Connect** dialog. These `$env:` variables only last for the current terminal session — you'll need to re-set them if you open a new window (or set them permanently via System Properties → Environment Variables).
+Replace `<region>`, `<project-ref>`, and `<your-db-password>` with the values from your Supabase **Connect** dialog. Note these `$env:` variables only last for the current terminal session — if you close the window, you'll need to run these three lines again before `mvn spring-boot:run` next time.
+
+**Setting up on a new PC?** Run this once per machine instead so you don't have to retype it every session (open a **new** terminal afterward for it to take effect):
+```powershell
+[System.Environment]::SetEnvironmentVariable("SUPABASE_DB_URL","jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres","User")
+[System.Environment]::SetEnvironmentVariable("SUPABASE_DB_USERNAME","postgres.<project-ref>","User")
+[System.Environment]::SetEnvironmentVariable("SUPABASE_DB_PASSWORD","<your-db-password>","User")
+```
+
+If you see an error mentioning an unresolved `${SUPABASE_DB_URL}` (or the app fails to find a host), it means these variables aren't set in the terminal you're running from — that's the #1 cause of "works on one PC, not another."
 
 ## 3. Run it
 
