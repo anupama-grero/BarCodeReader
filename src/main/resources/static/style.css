@@ -41,3 +41,9 @@ th, td {
 }
 
 button { cursor: pointer; margin-top: 0.5rem; margin-right: 0.5rem; }
+
+.message { margin-top: 0.5rem; min-height: 1.2rem; }
+.message.ok { color: green; }
+.message.error { color: crimson; }
+
+select, input { display: block; padding: 0.3rem; width: 260px; margin-bottom: 0.4rem; }

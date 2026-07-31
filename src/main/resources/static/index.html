@@ -7,7 +7,32 @@
 </head>
 <body>
 
-<h1>Products</h1>
+<h1>Products & Suppliers</h1>
+
+<section id="supplier-section">
+  <h2>Supplier Management</h2>
+  <form id="supplier-form">
+    <input type="hidden" id="supplier-id">
+    <label>Supplier Name <input id="supplier-name" required></label>
+    <label>Email <input id="supplier-email" type="email" required></label>
+    <label>Phone <input id="supplier-phone" required></label>
+    <label>Address <input id="supplier-address"></label>
+    <label>Company Name <input id="supplier-company"></label>
+    <button type="submit" id="supplier-submit-btn">Add Supplier</button>
+    <button type="button" id="supplier-clear-btn">Clear</button>
+    <div id="supplier-message" class="message"></div>
+  </form>
+
+  <h3>Supplier List</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Name</th><th>Company</th><th>Email</th><th>Phone</th><th>Address</th><th>Products</th><th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="supplier-table-body"></tbody>
+  </table>
+</section>
 
 <section id="scan-section">
   <label for="scan-input">Scan barcode:</label>
@@ -24,6 +49,9 @@
     <label>Description <input id="description"></label>
     <label>Price <input id="price" type="number" step="0.01" min="0" required></label>
     <label>Quantity <input id="quantity" type="number" min="0" required></label>
+    <label>Supplier
+      <select id="supplier-select"></select>
+    </label>
     <button type="submit" id="submit-btn">Save</button>
     <button type="button" id="cancel-btn" hidden>Cancel</button>
   </form>
