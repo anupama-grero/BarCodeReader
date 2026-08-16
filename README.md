@@ -1,125 +1,315 @@
-# Product CRUD — Spring MVC Demo
+# Supermarket Management System
 
-A minimal Spring Boot app demonstrating classic **Controller → Service → Repository** MVC layering, backed by Supabase (Postgres). One resource (`Product`), full CRUD, plus a barcode-scanner-friendly search endpoint.
+## 1. Project Overview
 
+This project is a Spring Boot-based Supermarket Management System built with Java, Spring MVC, Spring Data JPA, Hibernate, PostgreSQL, Supabase, Maven, and Thymeleaf. It provides a lightweight inventory and purchasing workflow for managing products, suppliers, purchase orders (POs), and goods received notes (GRNs).
+
+The application is structured around the standard MVC flow and is designed to run locally at http://localhost:8081. It combines REST-style data APIs for product and supplier management with Thymeleaf-based web pages for purchase order and goods reception workflows.
+
+## 2. Features
+
+### Product Management
+- Add Product
+- View Products
+- Edit Product
+- Delete Product
+- Product validation
+- Barcode-based lookup
+- Product price management
+- Product quantity / stock tracking
+- Product-supplier association
+
+### Supplier Management
+- Add Supplier
+- View Suppliers
+- Edit Supplier
+- Delete Supplier
+- Supplier validation
+- Duplicate email protection
+
+### Purchase Order Management
+- Create PO
+- View PO list
+- View PO details
+- Edit PO
+- Delete PO
+- Supplier selection
+- Product item selection
+- Quantity input
+- Unit price input
+- Line total and total amount calculation
+- PO status tracking
+
+### Goods Received Note Management
+- Create GRN from a PO
+- View GRNs
+- Receive quantities against ordered items
+- Validate ordered vs received quantities
+- Prevent over-receipt beyond remaining ordered quantity
+- Calculate GRN totals
+- Update product stock after GRN creation
+- Update PO receiving status
+
+## 3. Technology Stack
+
+- Java 21
+- Spring Boot 3.3.2
+- Spring MVC
+- Spring Data JPA
+- Hibernate ORM
+- PostgreSQL
+- Supabase
+- Maven
+- Thymeleaf
+- HTML / CSS / JavaScript
+- H2 in-memory database for tests
+
+## 4. Architecture
+
+The project follows the MVC architecture pattern:
+
+```text
+Client / Browser
+      ↓
+Controller
+      ↓
+Service
+      ↓
+Repository
+      ↓
+JPA / Hibernate
+      ↓
+PostgreSQL / Supabase
 ```
-[Browser page + USB scanner]
-        |  JSON over HTTP
-        v
-  Controller  (@RestController - HTTP only, no business logic)
-        |
-     Service   (business rules)
-        |
-   Repository  (JpaRepository - DB access)
-        |
-     Supabase (Postgres)
+
+### Layer responsibilities
+- Controller: handles HTTP requests and returns views or JSON responses
+- Service: contains business rules and validation logic
+- Repository: performs database access through Spring Data JPA interfaces
+- Entity: represents the database model and JPA mappings
+- Thymeleaf templates and static frontend assets: present data to the user
+
+## 5. Project Structure
+
+```text
+src/
+├── main/
+│   ├── java/
+│   │   └── com/
+│   │       └── bci/
+│   │           └── productcrud/
+│   │               ├── controller/
+│   │               ├── exception/
+│   │               ├── model/
+│   │               ├── repository/
+│   │               ├── service/
+│   │               └── ProductCrudApplication.java
+│   └── resources/
+│       ├── application.properties
+│       ├── static/
+│       │   ├── app.js
+│       │   ├── index.html
+│       │   └── style.css
+│       └── templates/
+│           ├── grn/
+│           └── purchase-orders/
+└── test/
+    └── java/
+        └── com/
+            └── bci/
+                └── productcrud/
+                    ├── controller/
+                    └── service/
 ```
 
-## 1. Prerequisites
+## 6. Database
 
-### Install Java 17
+The application uses PostgreSQL and is configured to connect to a Supabase-hosted database. Database configuration is defined in [src/main/resources/application.properties](src/main/resources/application.properties).
 
-Spring Boot 3.x requires Java 17 or newer.
+The main entities in the project include:
 
-- **Windows**: download the installer from [Eclipse Temurin](https://adoptium.net/temurin/releases/?version=17) (choose JDK 17, `.msi` for Windows), run it, and make sure "Add to PATH" and "Set JAVA_HOME" are checked during install.
-- Alternatively with `winget`:
-  ```powershell
-  winget install EclipseAdoptium.Temurin.17.JDK
-  ```
+- Supplier
+- Product
+- PurchaseOrder
+- PurchaseOrderItem
+- GoodsReceivedNote
+- GoodsReceivedNoteItem
 
-Verify it worked (open a **new** terminal so PATH changes apply):
-```powershell
-java -version
-```
-You should see something like `openjdk version "17.0.x"`.
+### Relationship overview
 
-### Install Maven
-
-- **Windows**: download the binary zip from [Maven's download page](https://maven.apache.org/download.cgi), extract it (e.g. to `C:\Program Files\Maven`), then add `<extract-path>\bin` to your `PATH` environment variable (System Properties → Environment Variables → edit `Path`).
-- Alternatively with `winget`:
-  ```powershell
-  winget install Apache.Maven
-  ```
-
-Verify:
-```powershell
-mvn -v
-```
-You should see the Maven version and the Java version it's using (should match step above).
-
-### Create a Supabase project
-
-1. Sign up / log in at [supabase.com](https://supabase.com) and create a new project.
-2. Once created, click **Connect** (top of the project dashboard) → **Connection String** → **URI** tab → select **Session pooler** (this works over plain IPv4, unlike the direct connection which is IPv6-only on many networks).
-3. You'll get something like:
-   ```
-   postgresql://postgres.<project-ref>:[YOUR-PASSWORD]@aws-0-<region>.pooler.supabase.com:5432/postgres
-   ```
-   Note the three pieces you'll need: host+port, username (`postgres.<project-ref>`), and your database password.
-
-## 2. Clone and set up the project
-
-```powershell
-git clone https://github.com/Thamel777/Spring-MVC.git
-cd Spring-MVC
+```text
+Supplier
+   ↓
+Purchase Order
+   ↓
+Purchase Order Items
+   ↓
+Product
 ```
 
-The database credentials are **not** stored in the repo — they're read from environment variables at startup (see [application.properties](src/main/resources/application.properties)). Set them in your terminal session before running the app:
-
-```powershell
-$env:SUPABASE_DB_URL="jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres"
-$env:SUPABASE_DB_USERNAME="postgres.<project-ref>"
-$env:SUPABASE_DB_PASSWORD="<your-db-password>"
+```text
+Purchase Order
+   ↓
+Goods Received Note
+   ↓
+Goods Received Note Items
+   ↓
+Product
 ```
 
-Replace `<region>`, `<project-ref>`, and `<your-db-password>` with the values from your Supabase **Connect** dialog. Note these `$env:` variables only last for the current terminal session — if you close the window, you'll need to run these three lines again before `mvn spring-boot:run` next time.
+The stock update flow is implemented through GRN processing. When a GRN is created, the received quantities are validated against the remaining ordered quantity and the related product stock is increased accordingly.
 
-**Setting up on a new PC?** Run this once per machine instead so you don't have to retype it every session (open a **new** terminal afterward for it to take effect):
-```powershell
-[System.Environment]::SetEnvironmentVariable("SUPABASE_DB_URL","jdbc:postgresql://aws-0-<region>.pooler.supabase.com:5432/postgres","User")
-[System.Environment]::SetEnvironmentVariable("SUPABASE_DB_USERNAME","postgres.<project-ref>","User")
-[System.Environment]::SetEnvironmentVariable("SUPABASE_DB_PASSWORD","<your-db-password>","User")
+## 7. Prerequisites
+
+- JDK 21
+- Maven
+- PostgreSQL / Supabase access credentials
+- Git (optional, for source control)
+
+## 8. Configuration
+
+The project reads database and application settings from [src/main/resources/application.properties](src/main/resources/application.properties).
+
+Use placeholders in your local configuration and provide your own Supabase credentials:
+
+```properties
+spring.datasource.url=YOUR_SUPABASE_DATABASE_URL
+spring.datasource.username=YOUR_SUPABASE_USERNAME
+spring.datasource.password=YOUR_SUPABASE_PASSWORD
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.open-in-view=false
+server.port=8081
 ```
 
-If you see an error mentioning an unresolved `${SUPABASE_DB_URL}` (or the app fails to find a host), it means these variables aren't set in the terminal you're running from — that's the #1 cause of "works on one PC, not another."
+Do not commit real database credentials to the repository. The application expects the local environment to provide valid Supabase connection details.
 
-## 3. Run it
+## 9. How to Run
 
-```powershell
+From the project root, run:
+
+```bash
+mvn clean
 mvn spring-boot:run
 ```
 
-On first run, Hibernate auto-creates the `products` table in your Supabase database (`spring.jpa.hibernate.ddl-auto=update`). Once you see `Started ProductCrudApplication`, open:
+Then open the application in a browser at:
 
-```
+```text
 http://localhost:8081
 ```
 
-You'll see a page with a barcode-scan input, an add/edit form, and a product table. A USB barcode scanner behaves like a keyboard (types the code, then presses Enter), so clicking into the scan field and scanning "just works."
+## 10. Testing
 
-## 4. API endpoints
+The project includes integration tests covering key business behavior.
 
-| Method | Path | Description |
-|---|---|---|
-| POST | `/api/products` | Create a product |
-| GET | `/api/products` | List all products |
-| GET | `/api/products/{id}` | Get a product by id |
-| GET | `/api/products/barcode/{barcode}` | Get a product by barcode (used by the scanner) |
-| PUT | `/api/products/{id}` | Update a product |
-| DELETE | `/api/products/{id}` | Delete a product |
+Run tests with:
 
-## 5. Project structure
-
-```
-src/main/java/com/bci/productcrud/
-  controller/   -> @RestController - HTTP in, HTTP out, no business logic
-  service/      -> business rules (e.g. "barcode must be unique")
-  repository/   -> JpaRepository interfaces - DB access, no SQL written by hand
-  model/        -> Product entity (JPA-mapped domain object)
-  exception/    -> centralized error handling (@RestControllerAdvice)
-src/main/resources/
-  application.properties -> config (DB connection, port, JPA settings)
-  static/                -> the frontend: index.html + app.js + style.css
+```bash
+mvn test
 ```
 
-Request flow for a barcode scan: `app.js` → `GET /api/products/barcode/{code}` → `ProductController` → `ProductService` → `ProductRepository` → Supabase, and the `Product` JSON flows back the same path in reverse.
+Current test coverage includes:
+- Supplier API validation and duplicate email prevention
+- Purchase order creation and GRN stock update flow
+- Validation of over-receipt beyond the remaining ordered quantity
+
+## 11. Database / Entity Relationships
+
+### Product
+- Represents inventory items
+- Has a barcode, name, description, price, quantity, and supplier reference
+- Mapped as a JPA entity with a many-to-one relation to Supplier
+
+### Supplier
+- Represents vendors or suppliers
+- Stores business details such as name, phone, email, address, and company name
+- Contains a list of associated products
+
+### PurchaseOrder
+- Represents a purchase request issued to a supplier
+- Contains supplier, order date, expected delivery date, status, and total amount
+- Contains multiple PurchaseOrderItem entries
+
+### PurchaseOrderItem
+- Represents one ordered product line in a PO
+- Stores product, quantity, unit price, and line total
+
+### GoodsReceivedNote
+- Represents the receiving record for part or all of a purchase order
+- Links to a PurchaseOrder
+- Stores received date, total amount, remarks, and status
+- Contains multiple GoodsReceivedNoteItem entries
+
+### GoodsReceivedNoteItem
+- Represents one received product line within a GRN
+- Stores product, ordered quantity, received quantity, unit price, and line total
+
+## 12. Business Workflow
+
+The primary workflow implemented by the project is:
+
+```text
+Supplier
+   ↓
+Purchase Order
+   ↓
+Goods Received Note
+   ↓
+Product Stock Update
+```
+
+A typical flow is:
+1. Create a Supplier
+2. Add products linked to that supplier
+3. Create a Purchase Order against a supplier
+4. Add ordered products with quantity and unit price
+5. Create a Goods Received Note from that PO
+6. Enter received quantities
+7. Validate that the received quantity does not exceed the remaining ordered quantity
+8. Update product stock
+9. Update the PO status to PARTIALLY_RECEIVED or RECEIVED
+
+## 13. Validation and Error Handling
+
+The application includes validation and centralized exception handling:
+
+- Product and Supplier validation is enforced using Jakarta Validation annotations
+- Duplicate email and duplicate barcode checks are enforced at the service layer
+- Purchase order validation checks supplier, required dates, and line items
+- GRN validation checks received quantities and remaining order quantities
+- Global exception handling returns structured HTTP error responses
+
+Examples of implemented application exceptions include:
+- DuplicateBarcodeException
+- DuplicateSupplierException
+- ProductNotFoundException
+- SupplierNotFoundException
+- ResourceNotFoundException
+- InvalidPurchaseOrderException
+- InvalidGoodsReceivedNoteException
+- InsufficientQuantityException
+
+## 14. Verification
+
+I verified the fix with the relevant regression tests:
+
+- Command: `mvn -q -Dtest='SupplierControllerIntegrationTest,PoGrnWorkflowIntegrationTest' test`
+- Evidence:
+- `com.bci.productcrud.controller.SupplierControllerIntegrationTest.txt`: Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
+- `com.bci.productcrud.service.PoGrnWorkflowIntegrationTest.txt`: Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
+
+This addresses the reported lazy-init Jackson failure while preserving the working Product, Supplier, PO, and GRN behavior.
+
+## 15. Future Improvements
+
+These are not currently implemented, but are reasonable future enhancements:
+- Authentication and role-based authorization
+- Dashboard analytics and reporting
+- Advanced inventory forecasting
+- Barcode scanner integration across more workflows
+- Email or notification alerts for low stock and pending orders
+
+## 16. License
+
+Academic project — no license specified.
