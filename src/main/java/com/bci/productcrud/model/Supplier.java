@@ -22,12 +22,17 @@ public class Supplier {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "supplier_id")
     private Long id;
 
     @NotBlank(message = "Supplier name is required")
     @Size(max = 100, message = "Supplier name cannot exceed 100 characters")
-    @Column(nullable = false, length = 100)
-    private String name;
+    @Column(name = "name", nullable = false, length = 100)
+    private String supplierName;
+
+    @Size(max = 100, message = "Contact person cannot exceed 100 characters")
+    @Column(name = "contact_person", length = 100)
+    private String contactPerson;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Please provide a valid email")
@@ -43,6 +48,14 @@ public class Supplier {
     @Column(length = 255)
     private String address;
 
+    @Size(max = 200, message = "Bank details cannot exceed 200 characters")
+    @Column(name = "bank_details", length = 200)
+    private String bankDetails;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false, length = 30)
+    private SupplierStatus status = SupplierStatus.ACTIVE;
+
     @Size(max = 150, message = "Company name cannot exceed 150 characters")
     @Column(name = "company_name", length = 150)
     private String companyName;
@@ -57,21 +70,23 @@ public class Supplier {
     @JsonIgnore
     private List<Product> products = new ArrayList<>();
 
-    // Constructors
+    @OneToMany(mappedBy = "supplier")
+    @JsonIgnore
+    private List<PurchaseOrder> purchaseOrders = new ArrayList<>();
 
     public Supplier() {
+        this.contactPerson = "Main Contact";
     }
 
-    public Supplier(String name, String email, String phone,
+    public Supplier(String supplierName, String email, String phone,
                     String address, String companyName) {
-        this.name = name;
+        this.supplierName = supplierName;
         this.email = email;
         this.phone = phone;
         this.address = address;
         this.companyName = companyName;
+        this.contactPerson = supplierName != null && !supplierName.isBlank() ? supplierName : "Main Contact";
     }
-
-    // Getters and Setters
 
     public Long getId() {
         return id;
@@ -82,11 +97,27 @@ public class Supplier {
     }
 
     public String getName() {
-        return name;
+        return supplierName;
     }
 
     public void setName(String name) {
-        this.name = name;
+        this.supplierName = name;
+    }
+
+    public String getSupplierName() {
+        return supplierName;
+    }
+
+    public void setSupplierName(String supplierName) {
+        this.supplierName = supplierName;
+    }
+
+    public String getContactPerson() {
+        return contactPerson;
+    }
+
+    public void setContactPerson(String contactPerson) {
+        this.contactPerson = contactPerson;
     }
 
     public String getEmail() {
@@ -111,6 +142,22 @@ public class Supplier {
 
     public void setAddress(String address) {
         this.address = address;
+    }
+
+    public String getBankDetails() {
+        return bankDetails;
+    }
+
+    public void setBankDetails(String bankDetails) {
+        this.bankDetails = bankDetails;
+    }
+
+    public SupplierStatus getStatus() {
+        return status;
+    }
+
+    public void setStatus(SupplierStatus status) {
+        this.status = status;
     }
 
     public String getCompanyName() {
@@ -145,14 +192,40 @@ public class Supplier {
         this.products = products;
     }
 
+    public List<PurchaseOrder> getPurchaseOrders() {
+        return purchaseOrders;
+    }
+
+    public void setPurchaseOrders(List<PurchaseOrder> purchaseOrders) {
+        this.purchaseOrders = purchaseOrders;
+    }
+
     @PrePersist
     protected void onCreate() {
+        if (supplierName == null || supplierName.isBlank()) {
+            supplierName = "Unknown Supplier";
+        }
+        if (contactPerson == null || contactPerson.isBlank()) {
+            contactPerson = supplierName != null && !supplierName.isBlank() ? supplierName : "Not Provided";
+        }
+        if (status == null) {
+            status = SupplierStatus.ACTIVE;
+        }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
     }
 
     @PreUpdate
     protected void onUpdate() {
+        if (supplierName == null || supplierName.isBlank()) {
+            supplierName = "Unknown Supplier";
+        }
+        if (contactPerson == null || contactPerson.isBlank()) {
+            contactPerson = supplierName != null && !supplierName.isBlank() ? supplierName : "Not Provided";
+        }
+        if (status == null) {
+            status = SupplierStatus.ACTIVE;
+        }
         updatedAt = LocalDateTime.now();
     }
 }

@@ -16,14 +16,19 @@ public class GoodsReceivedNote {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "grn_id")
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
     private String grnNumber;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
-    @JoinColumn(name = "purchase_order_id", nullable = false)
+    @JoinColumn(name = "po_id", nullable = false)
     private PurchaseOrder purchaseOrder;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "received_by")
+    private User receivedBy;
 
     @NotNull(message = "Received date is required")
     @Column(nullable = false)
@@ -98,6 +103,8 @@ public class GoodsReceivedNote {
     public void setGrnNumber(String grnNumber) { this.grnNumber = grnNumber; }
     public PurchaseOrder getPurchaseOrder() { return purchaseOrder; }
     public void setPurchaseOrder(PurchaseOrder purchaseOrder) { this.purchaseOrder = purchaseOrder; }
+    public User getReceivedBy() { return receivedBy; }
+    public void setReceivedBy(User receivedBy) { this.receivedBy = receivedBy; }
     public LocalDate getReceivedDate() { return receivedDate; }
     public void setReceivedDate(LocalDate receivedDate) { this.receivedDate = receivedDate; }
     public GoodsReceivedNoteStatus getStatus() { return status; }

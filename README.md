@@ -1,56 +1,45 @@
-# Supermarket Management System
+# Barcode Reader / Product CRUD
 
-## 1. Project Overview
+## Overview
 
-This project is a Spring Boot-based Supermarket Management System built with Java, Spring MVC, Spring Data JPA, Hibernate, PostgreSQL, Supabase, Maven, and Thymeleaf. It provides a lightweight inventory and purchasing workflow for managing products, suppliers, purchase orders (POs), and goods received notes (GRNs).
+This project is a Spring Boot 3.3.2 application for managing products, suppliers, purchase orders, and goods received notes. It combines a REST API with a simple web UI and uses JPA/Hibernate with PostgreSQL for persistence.
 
-The application is structured around the standard MVC flow and is designed to run locally at http://localhost:8081. It combines REST-style data APIs for product and supplier management with Thymeleaf-based web pages for purchase order and goods reception workflows.
+The application is built around a product inventory workflow with barcode-based lookup and stock updates driven by purchase-order receiving operations.
 
-## 2. Features
+## Features
 
-### Product Management
-- Add Product
-- View Products
-- Edit Product
-- Delete Product
-- Product validation
-- Barcode-based lookup
-- Product price management
-- Product quantity / stock tracking
-- Product-supplier association
+### Product management
+- Create, view, update, and delete products
+- Barcode validation and uniqueness checks
+- Product name, description, price, quantity, and supplier assignment
+- Lookup by product ID and barcode
+- REST endpoints under `/api/products`
 
-### Supplier Management
-- Add Supplier
-- View Suppliers
-- Edit Supplier
-- Delete Supplier
-- Supplier validation
-- Duplicate email protection
+### Supplier management
+- Create, view, update, and delete suppliers
+- Email uniqueness validation
+- Supplier details including name, email, phone, address, company, and status
+- REST endpoints under `/api/suppliers`
 
-### Purchase Order Management
-- Create PO
-- View PO list
-- View PO details
-- Edit PO
-- Delete PO
-- Supplier selection
-- Product item selection
-- Quantity input
-- Unit price input
-- Line total and total amount calculation
-- PO status tracking
+### Purchase order workflow
+- Create purchase orders linked to a supplier
+- Add purchase-order items with product, quantity, and unit price
+- Track order totals and status
+- Thymeleaf pages under `/purchase-orders`
 
-### Goods Received Note Management
-- Create GRN from a PO
-- View GRNs
-- Receive quantities against ordered items
-- Validate ordered vs received quantities
-- Prevent over-receipt beyond remaining ordered quantity
-- Calculate GRN totals
-- Update product stock after GRN creation
-- Update PO receiving status
+### Goods received notes (GRN)
+- Create receiving notes against a purchase order
+- Validate received quantities against the remaining ordered quantity
+- Update product stock after receiving items
+- Update purchase-order receiving status based on the total received quantity
+- Thymeleaf pages under `/grn`
 
-## 3. Technology Stack
+### Static web interface
+- Product and supplier CRUD form at `src/main/resources/static/index.html`
+- Client-side logic in `src/main/resources/static/app.js`
+- Styling in `src/main/resources/static/style.css`
+
+## Technology Stack
 
 - Java 21
 - Spring Boot 3.3.2
@@ -58,38 +47,12 @@ The application is structured around the standard MVC flow and is designed to ru
 - Spring Data JPA
 - Hibernate ORM
 - PostgreSQL
-- Supabase
-- Maven
+- Supabase database hosting
 - Thymeleaf
-- HTML / CSS / JavaScript
+- Maven
 - H2 in-memory database for tests
 
-## 4. Architecture
-
-The project follows the MVC architecture pattern:
-
-```text
-Client / Browser
-      ↓
-Controller
-      ↓
-Service
-      ↓
-Repository
-      ↓
-JPA / Hibernate
-      ↓
-PostgreSQL / Supabase
-```
-
-### Layer responsibilities
-- Controller: handles HTTP requests and returns views or JSON responses
-- Service: contains business rules and validation logic
-- Repository: performs database access through Spring Data JPA interfaces
-- Entity: represents the database model and JPA mappings
-- Thymeleaf templates and static frontend assets: present data to the user
-
-## 5. Project Structure
+## Project Structure
 
 ```text
 src/
@@ -122,86 +85,128 @@ src/
                     └── service/
 ```
 
-## 6. Database
+## Application Architecture
 
-The application uses PostgreSQL and is configured to connect to a Supabase-hosted database. Database configuration is defined in [src/main/resources/application.properties](src/main/resources/application.properties).
-
-The main entities in the project include:
-
-- Supplier
-- Product
-- PurchaseOrder
-- PurchaseOrderItem
-- GoodsReceivedNote
-- GoodsReceivedNoteItem
-
-### Relationship overview
+The application follows a standard Spring MVC + JPA layering pattern:
 
 ```text
-Supplier
-   ↓
-Purchase Order
-   ↓
-Purchase Order Items
-   ↓
-Product
+Browser / Client
+      ↓
+Controller Layer
+      ↓
+Service Layer
+      ↓
+Repository Layer
+      ↓
+Hibernate / PostgreSQL
 ```
 
-```text
-Purchase Order
-   ↓
-Goods Received Note
-   ↓
-Goods Received Note Items
-   ↓
-Product
-```
+### Layer responsibilities
+- Controllers handle HTTP requests and return JSON or rendered pages
+- Services implement business validation and workflow logic
+- Repositories provide persistence access using Spring Data JPA
+- Entities map the database tables used by the application
 
-The stock update flow is implemented through GRN processing. When a GRN is created, the received quantities are validated against the remaining ordered quantity and the related product stock is increased accordingly.
+## Database and Configuration
 
-## 7. Prerequisites
+The project is configured in `src/main/resources/application.properties`.
 
-- JDK 21
-- Maven
-- PostgreSQL / Supabase access credentials
-- Git (optional, for source control)
-
-## 8. Configuration
-
-The project reads database and application settings from [src/main/resources/application.properties](src/main/resources/application.properties).
-
-Use placeholders in your local configuration and provide your own Supabase credentials:
+Current configuration includes:
+- PostgreSQL driver
+- Supabase connection URL
+- JPA schema validation mode (`spring.jpa.hibernate.ddl-auto=validate`)
+- Port `8081`
+- Thymeleaf cache disabled for development
 
 ```properties
-spring.datasource.url=YOUR_SUPABASE_DATABASE_URL
-spring.datasource.username=YOUR_SUPABASE_USERNAME
-spring.datasource.password=YOUR_SUPABASE_PASSWORD
+spring.datasource.url=jdbc:postgresql://.../postgres?sslmode=require
 spring.datasource.driver-class-name=org.postgresql.Driver
-spring.jpa.hibernate.ddl-auto=update
+spring.jpa.hibernate.ddl-auto=validate
 spring.jpa.open-in-view=false
 server.port=8081
 ```
 
-Do not commit real database credentials to the repository. The application expects the local environment to provide valid Supabase connection details.
+This project intentionally keeps the database schema validated rather than recreating it automatically, so any mismatch between the entity model and the live database is surfaced clearly during startup.
 
-## 9. How to Run
+## Main Entities
 
-From the project root, run:
+- `Product` — inventory item with barcode, name, description, price, quantity, and supplier
+- `Supplier` — vendor details and contact information
+- `PurchaseOrder` — supplier order record with items and totals
+- `PurchaseOrderItem` — line item for a purchase order
+- `GoodsReceivedNote` — receiving record linked to a purchase order
+- `GoodsReceivedNoteItem` — received product lines for a GRN
 
-```bash
-mvn clean
-mvn spring-boot:run
-```
+## REST API
 
-Then open the application in a browser at:
+### Products
+- `GET /api/products` — list all products
+- `GET /api/products/{id}` — get product by ID
+- `GET /api/products/barcode/{barcode}` — get product by barcode
+- `POST /api/products` — create a product
+- `PUT /api/products/{id}` — update a product
+- `DELETE /api/products/{id}` — delete a product
 
-```text
-http://localhost:8081
-```
+### Suppliers
+- `GET /api/suppliers` — list all suppliers
+- `GET /api/suppliers/{id}` — get supplier by ID
+- `GET /api/suppliers/email/{email}` — get supplier by email
+- `POST /api/suppliers` — create a supplier
+- `PUT /api/suppliers/{id}` — update a supplier
+- `DELETE /api/suppliers/{id}` — delete a supplier
 
-## 10. Testing
+## Web Pages
 
-The project includes integration tests covering key business behavior.
+The application includes Thymeleaf views for operational workflows:
+
+- `/purchase-orders` — purchase order list and form pages
+- `/grn` — goods received note list and form pages
+
+These pages are rendered from templates in:
+- `src/main/resources/templates/purchase-orders`
+- `src/main/resources/templates/grn`
+
+## Business Workflow
+
+A typical flow in this project is:
+
+1. Create a supplier
+2. Add one or more products for that supplier
+3. Create a purchase order
+4. Add ordered items with quantity and unit price
+5. Create a goods received note for the purchase order
+6. Validate the received quantity against the remaining order quantity
+7. Update product stock
+8. Update the purchase order status to `PARTIALLY_RECEIVED` or `RECEIVED`
+
+## Validation and Error Handling
+
+The project uses Jakarta Bean Validation and service-layer checks to enforce data quality. Key checks include:
+
+- required product and supplier fields
+- duplicate barcode detection
+- duplicate email detection
+- invalid quantity checks
+- over-receipt prevention for a purchase order
+- centralized exception handling for not found and invalid-input cases
+
+Exception types include:
+- `DuplicateBarcodeException`
+- `DuplicateSupplierException`
+- `ProductNotFoundException`
+- `SupplierNotFoundException`
+- `ResourceNotFoundException`
+- `InvalidPurchaseOrderException`
+- `InvalidGoodsReceivedNoteException`
+- `InsufficientQuantityException`
+
+## Testing
+
+The project includes integration tests under `src/test/java` for API and workflow validation.
+
+Examples:
+- `SupplierControllerIntegrationTest`
+- `PoGrnWorkflowIntegrationTest`
 
 Run tests with:
 
@@ -209,95 +214,32 @@ Run tests with:
 mvn test
 ```
 
-Current test coverage includes:
-- Supplier API validation and duplicate email prevention
-- Purchase order creation and GRN stock update flow
-- Validation of over-receipt beyond the remaining ordered quantity
+The application is also configured to use H2 test data sources for isolated test execution.
 
-## 11. Database / Entity Relationships
+## Running the Project
 
-### Product
-- Represents inventory items
-- Has a barcode, name, description, price, quantity, and supplier reference
-- Mapped as a JPA entity with a many-to-one relation to Supplier
+From the project root:
 
-### Supplier
-- Represents vendors or suppliers
-- Stores business details such as name, phone, email, address, and company name
-- Contains a list of associated products
-
-### PurchaseOrder
-- Represents a purchase request issued to a supplier
-- Contains supplier, order date, expected delivery date, status, and total amount
-- Contains multiple PurchaseOrderItem entries
-
-### PurchaseOrderItem
-- Represents one ordered product line in a PO
-- Stores product, quantity, unit price, and line total
-
-### GoodsReceivedNote
-- Represents the receiving record for part or all of a purchase order
-- Links to a PurchaseOrder
-- Stores received date, total amount, remarks, and status
-- Contains multiple GoodsReceivedNoteItem entries
-
-### GoodsReceivedNoteItem
-- Represents one received product line within a GRN
-- Stores product, ordered quantity, received quantity, unit price, and line total
-
-## 12. Business Workflow
-
-The primary workflow implemented by the project is:
-
-```text
-Supplier
-   ↓
-Purchase Order
-   ↓
-Goods Received Note
-   ↓
-Product Stock Update
+```bash
+mvn spring-boot:run
 ```
 
-A typical flow is:
-1. Create a Supplier
-2. Add products linked to that supplier
-3. Create a Purchase Order against a supplier
-4. Add ordered products with quantity and unit price
-5. Create a Goods Received Note from that PO
-6. Enter received quantities
-7. Validate that the received quantity does not exceed the remaining ordered quantity
-8. Update product stock
-9. Update the PO status to PARTIALLY_RECEIVED or RECEIVED
+Then open:
 
-## 13. Validation and Error Handling
+```text
+http://localhost:8081
+```
 
-The application includes validation and centralized exception handling:
+## Notes
 
-- Product and Supplier validation is enforced using Jakarta Validation annotations
-- Duplicate email and duplicate barcode checks are enforced at the service layer
-- Purchase order validation checks supplier, required dates, and line items
-- GRN validation checks received quantities and remaining order quantities
-- Global exception handling returns structured HTTP error responses
+- The project is designed for PostgreSQL/Supabase use in the main runtime environment.
+- The database schema is validated on startup, so entity mappings should match the live database structure.
+- The project preserves the existing Product CRUD and supplier management functionality while supporting the order-receiving workflow used in the application.
 
-Examples of implemented application exceptions include:
-- DuplicateBarcodeException
-- DuplicateSupplierException
-- ProductNotFoundException
-- SupplierNotFoundException
-- ResourceNotFoundException
-- InvalidPurchaseOrderException
-- InvalidGoodsReceivedNoteException
-- InsufficientQuantityException
+## Academic / Project Context
 
-## 14. Verification
+This project is a Java Spring Boot CRUD and warehouse workflow application created for enterprise application development coursework. It demonstrates core JPA mapping, validation, MVC structure, PostgreSQL integration, and business-process implementation.
 
-I verified the fix with the relevant regression tests:
-
-- Command: `mvn -q -Dtest='SupplierControllerIntegrationTest,PoGrnWorkflowIntegrationTest' test`
-- Evidence:
-- `com.bci.productcrud.controller.SupplierControllerIntegrationTest.txt`: Tests run: 1, Failures: 0, Errors: 0, Skipped: 0
-- `com.bci.productcrud.service.PoGrnWorkflowIntegrationTest.txt`: Tests run: 2, Failures: 0, Errors: 0, Skipped: 0
 
 This addresses the reported lazy-init Jackson failure while preserving the working Product, Supplier, PO, and GRN behavior.
 
