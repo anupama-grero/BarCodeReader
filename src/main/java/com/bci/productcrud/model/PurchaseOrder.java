@@ -16,6 +16,7 @@ public class PurchaseOrder {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "po_id")
     private Long id;
 
     @Column(nullable = false, unique = true, length = 50)
@@ -24,6 +25,14 @@ public class PurchaseOrder {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "supplier_id", nullable = false)
     private Supplier supplier;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "created_by")
+    private User createdBy;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "approved_by")
+    private User approvedBy;
 
     @NotNull(message = "Order date is required")
     @Column(nullable = false)
@@ -50,6 +59,9 @@ public class PurchaseOrder {
     @JsonManagedReference
     @Valid
     private List<PurchaseOrderItem> items = new ArrayList<>();
+
+    @OneToMany(mappedBy = "purchaseOrder")
+    private List<GoodsReceivedNote> goodsReceipts = new ArrayList<>();
 
     @PrePersist
     protected void onCreate() {
@@ -99,6 +111,10 @@ public class PurchaseOrder {
     public void setPoNumber(String poNumber) { this.poNumber = poNumber; }
     public Supplier getSupplier() { return supplier; }
     public void setSupplier(Supplier supplier) { this.supplier = supplier; }
+    public User getCreatedBy() { return createdBy; }
+    public void setCreatedBy(User createdBy) { this.createdBy = createdBy; }
+    public User getApprovedBy() { return approvedBy; }
+    public void setApprovedBy(User approvedBy) { this.approvedBy = approvedBy; }
     public LocalDate getOrderDate() { return orderDate; }
     public void setOrderDate(LocalDate orderDate) { this.orderDate = orderDate; }
     public LocalDate getExpectedDeliveryDate() { return expectedDeliveryDate; }
@@ -113,4 +129,6 @@ public class PurchaseOrder {
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
     public List<PurchaseOrderItem> getItems() { return items; }
     public void setItems(List<PurchaseOrderItem> items) { this.items = items; }
+    public List<GoodsReceivedNote> getGoodsReceipts() { return goodsReceipts; }
+    public void setGoodsReceipts(List<GoodsReceivedNote> goodsReceipts) { this.goodsReceipts = goodsReceipts; }
 }

@@ -3,6 +3,7 @@ package com.bci.productcrud.service;
 import com.bci.productcrud.exception.DuplicateSupplierException;
 import com.bci.productcrud.exception.SupplierNotFoundException;
 import com.bci.productcrud.model.Supplier;
+import com.bci.productcrud.model.SupplierStatus;
 import com.bci.productcrud.repository.SupplierRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,8 +22,17 @@ public class SupplierServiceImpl implements SupplierService {
 
     @Override
     public Supplier create(Supplier supplier) {
+        if (supplier == null) {
+            throw new IllegalArgumentException("Supplier is required");
+        }
         if (supplierRepository.existsByEmail(supplier.getEmail())) {
             throw new DuplicateSupplierException("A supplier with email " + supplier.getEmail() + " already exists");
+        }
+        if (supplier.getContactPerson() == null || supplier.getContactPerson().isBlank()) {
+            supplier.setContactPerson(supplier.getSupplierName() != null ? supplier.getSupplierName() : "Main Contact");
+        }
+        if (supplier.getStatus() == null) {
+            supplier.setStatus(SupplierStatus.ACTIVE);
         }
         supplier.setId(null);
         return supplierRepository.save(supplier);
@@ -59,10 +69,16 @@ public class SupplierServiceImpl implements SupplierService {
                 });
 
         supplier.setName(request.getName());
+        supplier.setContactPerson(request.getContactPerson() == null || request.getContactPerson().isBlank()
+                ? (supplier.getSupplierName() != null ? supplier.getSupplierName() : "Main Contact")
+                : request.getContactPerson());
         supplier.setEmail(request.getEmail());
         supplier.setPhone(request.getPhone());
         supplier.setAddress(request.getAddress());
         supplier.setCompanyName(request.getCompanyName());
+        if (request.getStatus() != null) {
+            supplier.setStatus(request.getStatus());
+        }
         return supplierRepository.save(supplier);
     }
 
